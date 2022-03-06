@@ -1,0 +1,289 @@
+<html>
+	<head>
+		<title>dog food</title>
+		<link rel = "icon" href = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQudx87gpctKJdgDyq5DpVlb12fI3_7XgbfXw&usqp=CAU">
+		<style>
+			canvas.GameWindow {
+				display: block;
+				margin-left: auto;
+				margin-right: auto;
+				image-rendering: pixelated;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas width = 800 height = 500 class = GameWindow>Sorry but the canvas is not taken by your web browser</canvas>
+		
+		<script>
+			window.onload = init;
+			
+			var incremente_road = 0;
+			var beforeACar = 0;
+			
+			var z_press = false;
+			var s_press = false;
+			var q_press = false;
+			var d_press = false;
+			
+			const totalCar = [];
+			const tableCar = [];
+			
+			class player {
+				constructor (x,y,speed,image) {
+					this.x = x;
+					this.y = y;
+					this.speed = speed;
+					this.acceleration = 0;
+					this.image = image
+				};
+			};
+			
+			class car {
+				constructor (x,y,image) {
+					this.x = x;
+					this.y = y;
+					this.image = image;
+					totalCar.push(this);
+				};
+			};
+			
+			class tile {
+				constructor (x,y,image) {
+					this.x = x;
+					this.y = y;
+					this.image = image;
+				};
+			};
+			
+			var Player = new player(240,250,2,0);
+			
+			//create function
+			function getRandomInt() {
+				return Math.floor(Math.random() * 8);
+			};
+			
+			function generateRow(imageLoad) {
+				var canvas = document.querySelector('canvas');
+				if (tableCar.length == 0) {
+					const CurrentRow = [1,1,1,1,1,1,1,1];
+					const alreadyChooseNumber = [];
+					for (var i = 0;i<7;i++) {
+						var ready = false;
+						var choosenNumber = getRandomInt();
+						
+						do {
+							ready = true;
+							choosenNumber = getRandomInt();
+							
+							for (var j = 0;j<alreadyChooseNumber.length;j++) {
+								if (choosenNumber == alreadyChooseNumber[j]) {
+									ready = false;
+									
+								};
+							};
+						}while (ready == false);
+						
+						alreadyChooseNumber.push(choosenNumber);
+						CurrentRow[choosenNumber] = 0
+					};
+					for (var i = 0;i<9;i++) {
+						if (CurrentRow[i] == 1) {
+							new car(canvas.width/10*(i+1),canvas.width/-10,imageLoad[4]);
+						};
+					};
+					tableCar.push(CurrentRow);
+				}else{
+					const CurrentRow = [1,1,1,1,1,1,1,1];
+					const lastRow = tableCar[tableCar.length-1];
+					const alreadyChooseNumber = [];
+					const lastSpace = []
+					
+					for (var i = 0;i<9;i++) {
+						if (lastRow[i]==0) {
+							lastSpace.push(i);
+						};
+					};
+					
+					for (var i = 0;i<2;i++) {
+						var choosenNumber = Math.floor(Math.random() * 5);
+						CurrentRow[lastSpace[choosenNumber]] = 0
+						alreadyChooseNumber.push(lastSpace[choosenNumber])
+					};
+					
+					for (var i = 0;i<5;i++) {
+						var ready = false;
+						var choosenNumber = getRandomInt();
+						
+						do {
+							ready = true;
+							choosenNumber = getRandomInt();
+							
+							for (var j = 0;j<alreadyChooseNumber.length;j++) {
+								if (choosenNumber == alreadyChooseNumber[j]) {
+									ready = false;
+								};
+							};
+						}while (ready == false);
+						
+						alreadyChooseNumber.push(choosenNumber);
+						CurrentRow[choosenNumber] = 0
+					};
+					
+					for (var i = 0;i<9;i++) {
+						if (CurrentRow[i] == 1) {
+							new car(canvas.width/10*(i+1),canvas.width/-10,imageLoad[4]);
+						};
+					};
+					tableCar.push(CurrentRow);
+				};
+			};
+			
+			function drawAnImage(positionX,positionY,width,height,image) {
+				var canvas = document.querySelector('canvas');
+				var ctx = canvas.getContext('2d');
+				ctx.drawImage(image, positionX, positionY, width, height);
+			};
+			
+			function start(imageLoad) {
+				var canvas = document.querySelector('canvas');
+				const background_tile = [];
+				
+				Player.image = imageLoad[3];
+				document.addEventListener("keydown", function(event) {
+					if (event.keyCode == 90) {
+						z_press = true;
+					};
+					if (event.keyCode == 83) {
+						s_press = true;
+					};
+					
+					if (event.keyCode == 81) {
+						q_press = true;
+					};
+					if (event.keyCode == 68) {
+						d_press = true;
+					};
+				}
+				);
+				document.addEventListener("keyup", function(event) {
+					if (event.keyCode == 90) {
+						z_press = false;
+					};
+					if (event.keyCode == 83) {
+						s_press = false;
+					};
+					
+					if (event.keyCode == 81) {
+						q_press = false;
+					};
+					if (event.keyCode == 68) {
+						d_press = false;
+					};
+				}
+				);
+				
+				for (var i = -1;i<9;i++) {
+					background_tile.push(new tile(0,i*canvas.width/10,imageLoad[0]));
+				};
+				for (var x = canvas.width/10;x<9*canvas.width/10;x+=canvas.width/10) {
+					for (var y = -1*canvas.width/10;y<9*canvas.width/10;y+=canvas.width/10) {
+						background_tile.push(new tile(x,y,imageLoad[1]));
+					};
+				};
+				
+				for (var i = -1;i<9;i++) {
+					background_tile.push(new tile(9*canvas.width/10,i*canvas.width/10,imageLoad[2]));
+				};
+				window.requestAnimationFrame(function () {gameLoop(imageLoad,background_tile);});
+			};
+			
+			function gameLoop(imageLoad,background_tile) {
+				image = imageLoad
+				var canvas = document.querySelector('canvas');
+				
+				for (var i = 0;i<20+80;i++) {
+					drawAnImage(background_tile[i].x,background_tile[i].y+incremente_road,canvas.width/10,canvas.width/10,background_tile[i].image);
+				};
+				
+				for (var i = 0;i<totalCar.length;i++) {
+					drawAnImage(totalCar[i].x,totalCar[i].y,canvas.width/10,canvas.width/10,totalCar[i].image);
+					totalCar[i].y+=(Player.speed+Player.acceleration) * 1.5;
+				};
+				
+				beforeACar+= (Player.speed+Player.acceleration) * 1.5;
+				if (beforeACar >= canvas.width/10) {
+					beforeACar=0;
+					generateRow(imageLoad);
+					
+				};
+				
+				drawAnImage(Player.x,Player.y,canvas.width/10,canvas.width/10,Player.image);
+				
+				if (z_press == true) {
+					Player.acceleration += 0.01;
+				};
+				if (s_press == true) {
+					Player.acceleration = 0;
+				};
+				if (q_press == true) {
+					Player.x -= (canvas.width+Player.acceleration)/200;
+				};
+				if (d_press == true) {
+					Player.x += (canvas.width+Player.acceleration)/200;
+				};
+				
+				if (Player.acceleration < 0) {
+					Player.acceleration = 0;
+				}
+				if (Player.acceleration > 0 && z_press == false) {
+					Player.acceleration -= 0.08
+				};
+				
+				if (Player.acceleration > 10) {
+					Player.acceleration = 10
+				};
+				
+				incremente_road+=(Player.speed+Player.acceleration)*2;
+				
+				if (incremente_road>=canvas.width/10) {
+					incremente_road=0
+				};
+				window.requestAnimationFrame(function () {gameLoop(image,background_tile);});
+			};
+			
+			//load image and initialize value
+			function init() {
+				var canvas = document.querySelector('canvas');
+				var ctx = canvas.getContext('2d');
+				ctx.imageSmoothingEnabled = false;
+				
+				//initialize canvas
+				ctx.fillStyle = 'black';
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				
+				const imageToLoad = [
+					"image/border_road_left.png",
+					"image/road.png",
+					"image/border_road_right.png",
+					"image/player.png",
+					"image/car.png",
+				];
+				var totalImage = imageToLoad.length;
+				let imageLoad = [];
+				var loadedImage = 0
+				
+				for (var i = 0;i<totalImage;i++) {
+					var img = new Image();
+					img.src = imageToLoad[i];
+					imageLoad.push(img);
+					img.onload = function() {
+						loadedImage++
+						if (loadedImage == totalImage) {
+							start(imageLoad);
+						};
+					};	
+				};
+			};
+		</script>
+	</body>
+</html>
